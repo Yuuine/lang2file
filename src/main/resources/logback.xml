@@ -25,9 +25,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${APP_NAME}.log</file>
         <append>true</append>
-        <!-- 使用新的 SizeAndTimeBasedRollingPolicy 替代已弃用的配置 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- 每天滚动一次，保留7天 -->
             <fileNamePattern>${LOG_HOME}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>7</maxHistory>
@@ -38,6 +36,18 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+
+    <!-- 根logger配置 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!-- Spring Boot ApplicationEnvironment logger -->
+    <logger name="org.springframework.boot.ApplicationEnvironment" level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
 
     <!-- 生产环境配置 -->
     <springProfile name="prod">

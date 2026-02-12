@@ -3,10 +3,12 @@ server:
 spring:
   application:
     name: tool
+  main:
+    web-application-type: none
   ai:
     openai:
       api-key: ${API_KEY}
-      base-url: https://api.deepseek.com/v1
+      base-url: https://api.deepseek.com
       chat:
         options:
           model: deepseek-chat
@@ -15,4 +17,6 @@ spring:
 
 logging:
   config: classpath:logback.xml
-
+  level:
+    org.springframework.ai: DEBUG
+    reactor.netty.http.client: DEBUG
