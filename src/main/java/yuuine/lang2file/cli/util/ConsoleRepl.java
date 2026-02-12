@@ -1,6 +1,6 @@
-package yuuine.tool.cli.util;
+package yuuine.lang2file.cli.util;
 
-import yuuine.tool.agent.AgentService;
+import yuuine.lang2file.agent.AgentService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

@@ -62,7 +62,7 @@
         <logger name="org.springframework.ai" level="INFO" />
 
         <!-- 项目包的日志级别 -->
-        <logger name="yuuine.tool" level="DEBUG" />
+        <logger name="yuuine.lang2file" level="DEBUG" />
 
         <!-- 根日志器 -->
         <root level="INFO">

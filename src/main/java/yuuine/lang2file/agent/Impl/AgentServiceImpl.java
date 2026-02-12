@@ -1,9 +1,9 @@
-package yuuine.tool.agent.Impl;
+package yuuine.lang2file.agent.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import yuuine.tool.agent.AgentService;
+import yuuine.lang2file.agent.AgentService;
 
 @Service
 @RequiredArgsConstructor

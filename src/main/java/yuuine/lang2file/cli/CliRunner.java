@@ -1,9 +1,9 @@
-package yuuine.tool.cli;
+package yuuine.lang2file.cli;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import yuuine.tool.agent.AgentService;
-import yuuine.tool.cli.util.ConsoleRepl;
+import yuuine.lang2file.agent.AgentService;
+import yuuine.lang2file.cli.util.ConsoleRepl;
 
 @Component
 public class CliRunner implements CommandLineRunner {
