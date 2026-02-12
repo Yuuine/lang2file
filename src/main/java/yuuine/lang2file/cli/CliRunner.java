@@ -16,9 +16,32 @@ public class CliRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 启动 REPL 循环（阻塞主线程）
-        new ConsoleRepl(agentService).start();
 
-        // 应用将在 REPL 退出后自然结束
+        if (isCiEnvironment()) {
+            System.out.println("检测到 CI 环境，跳过启动交互式控制台");
+            return;
+        }
+
+        new ConsoleRepl(agentService).start();
+    }
+
+    /**
+     * 检测是否在 CI/CD 环境中
+     */
+    private boolean isCiEnvironment() {
+        String[] ciEnvVars = {
+                "CI",
+                "GITHUB_ACTIONS",
+                "GITLAB_CI",
+                "CIRCLECI",
+                "JENKINS_HOME",
+                "TEAMCITY_VERSION"
+        };
+        for (String var : ciEnvVars) {
+            if (System.getenv(var) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }
