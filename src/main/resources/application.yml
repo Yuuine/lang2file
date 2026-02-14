@@ -1,22 +1,33 @@
 server:
   port: 8080
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
 spring:
   application:
-    name: tool
+    name: lang2file
+  profiles:
+    active: dev
   main:
     web-application-type: none
+    allow-circular-references: true
+  
   ai:
     openai:
-      api-key: ${API_KEY}
+      api-key: ${API_KEY:sk-default-key}
       base-url: https://api.deepseek.com
       chat:
         options:
           model: deepseek-chat
-          temperature: 1.0
+          temperature: 0.7
           max-tokens: 2048
-
+          top-p: 1.0
+      
 logging:
-  config: classpath:logback.xml
   level:
-    org.springframework.ai: DEBUG
-    reactor.netty.http.client: DEBUG
+    root: INFO
+    yuuine.lang2file: INFO
+    org.springframework.ai: WARN

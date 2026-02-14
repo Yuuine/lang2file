@@ -3,16 +3,12 @@
     <!-- 定义属性 -->
     <property name="LOG_HOME" value="./logs" />
     <property name="APP_NAME" value="tool" />
-
     <!-- 控制台日志格式 -->
     <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}" />
-
     <!-- 文件日志格式 -->
     <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
-
     <!-- Spring Boot默认配置 -->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-
     <!-- 定义彩色控制台输出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -58,13 +54,8 @@
 
     <!-- 开发环境配置 -->
     <springProfile name="dev,default">
-        <!-- Spring AI 的 INFO 日志 -->
-        <logger name="org.springframework.ai" level="INFO" />
-
-        <!-- 项目包的日志级别 -->
+        <logger name="org.springframework.ai" level="DEBUG" />
         <logger name="yuuine.lang2file" level="DEBUG" />
-
-        <!-- 根日志器 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
