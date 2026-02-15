@@ -13,9 +13,16 @@ spring:
   profiles:
     active: dev
   main:
-    web-application-type: servlet
+    web-application-type: none # cli 环境
     allow-circular-references: true
-    banner-mode: console
+  shell:
+    interactive:
+      enabled: true
+    script:
+      enabled: false
+    command:
+      stacktrace:
+        enabled: false
 
   devtools:
     restart:

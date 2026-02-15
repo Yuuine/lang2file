@@ -14,7 +14,18 @@ spring:
   main:
     web-application-type: none
     allow-circular-references: true
-  
+
+  shell:
+    interactive:
+      enabled: true
+    script:
+      enabled: false
+    command:
+      help:
+        enabled: true
+      stacktrace:
+        enabled: false
+
   ai:
     openai:
       api-key: ${API_KEY:sk-default-key}

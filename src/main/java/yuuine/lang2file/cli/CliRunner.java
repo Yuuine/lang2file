@@ -1,28 +1,24 @@
 package yuuine.lang2file.cli;
 
-import org.springframework.boot.CommandLineRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
+import org.springframework.shell.jline.PromptProvider;
 import org.springframework.stereotype.Component;
-import yuuine.lang2file.agent.AgentService;
-import yuuine.lang2file.cli.util.ConsoleRepl;
 
+@Slf4j
 @Component
-public class CliRunner implements CommandLineRunner {
-
-    private final AgentService agentService;
-
-    public CliRunner(AgentService agentService) {
-        this.agentService = agentService;
-    }
+public class CliRunner implements PromptProvider {
 
     @Override
-    public void run(String... args) {
-
+    public AttributedString getPrompt() {
+        // 如果在 CI 环境中，则不启动 CLI
         if (isCiEnvironment()) {
-            System.out.println("检测到 CI 环境，跳过启动交互式控制台");
-            return;
+            return null;
         }
-
-        new ConsoleRepl(agentService).start();
+        // 否则启动 CLI 并返回提示符
+        return new AttributedString("lang2file> ",
+                AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
     }
 
     /**
