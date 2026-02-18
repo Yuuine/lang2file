@@ -40,16 +40,3 @@ spring:
           temperature: 0.7
           max-tokens: 2048
           top-p: 1.0
-
-logging:
-  config: classpath:logback-dev.xml
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,logfile
-  endpoint:
-    health:
-      show-details: always
-    logfile:
-      external-file: ./logs/tool.log
