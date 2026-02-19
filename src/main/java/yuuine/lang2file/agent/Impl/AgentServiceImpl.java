@@ -3,6 +3,7 @@ package yuuine.lang2file.agent.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -14,6 +15,7 @@ import yuuine.lang2file.agent.AgentService;
 public class AgentServiceImpl implements AgentService {
 
     private final ChatClient chatClient;
+    private final ChatMemory chatMemory;
 
     /**
      * 同步聊天方法 - 返回完整响应
@@ -28,6 +30,8 @@ public class AgentServiceImpl implements AgentService {
 
             ChatResponse chatResponse = chatClient.prompt()
                     .user(userInput)
+                    .advisors(a -> a
+                            .param("chatMemory", chatMemory))
                     .call()
                     .chatResponse();
 
@@ -36,7 +40,7 @@ public class AgentServiceImpl implements AgentService {
                 log.debug(String.valueOf(chatResponse.getResult().getOutput()));
             }
             if (chatResponse != null) {
-                log.info(chatResponse.getResult().getOutput().getText());
+                log.info("获取对话成功，详情见debug日志");
             }
 
             return chatResponse;
