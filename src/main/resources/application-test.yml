@@ -1,0 +1,47 @@
+# CI 测试环境配置
+
+spring:
+  main:
+    web-application-type: servlet
+
+  shell:
+    interactive:
+      enabled: false
+    command:
+      stacktrace:
+        enabled: false
+    script:
+      enabled: false
+
+  ai:
+    openai:
+      api-key: ${API_KEY:sk-test-fallback-key}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${AI_MODEL:deepseek-chat}
+          temperature: 0.7
+          max-tokens: 2048
+
+logging:
+  level:
+    root: WARN
+    yuuine.lang2file: DEBUG
+    yuuine.lang2file.tool: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.ai.tool: DEBUG
+    org.springframework.web.client: DEBUG
+    org.springframework.test: DEBUG
+  file:
+    name: ./logs/test-tool.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
