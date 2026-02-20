@@ -1,13 +1,12 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+# .github/workflows/java-ci.yml
 
 name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main", "dev"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -18,37 +17,59 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Build with Maven
-      run: mvn -B clean package --file pom.xml
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-    - name: Run tests
-      run: mvn -B test --file pom.xml
+      - name: Build and Test
+        run: mvn -B clean verify --file pom.xml
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          SPRING_PROFILES_ACTIVE: test
 
-    - name: Check code quality (optional)
-      run: mvn -B compile --file pom.xml
+      - name: Check code quality
+        run: mvn -B spotless:check --file pom.xml
+        continue-on-error: true
 
-    # Optional: Upload test results
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        files: |
-          **/target/surefire-reports/TEST-*.xml
-          **/target/failsafe-reports/TEST-*.xml
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            **/target/surefire-reports/TEST-*.xml
+            **/target/failsafe-reports/TEST-*.xml
+          check_name: Test Results
+          comment_mode: always
 
-    # Optional: Upload artifact
-    - name: Upload JAR artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: spring-boot-app
-        path: target/*.jar
-        if-no-files-found: warn
+      - name: Upload Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 3
+          if-no-files-found: ignore
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: spring-boot-app-${{ github.sha }}
+          path: target/*.jar
+          retention-days: 7
+          if-no-files-found: warn
