@@ -1,4 +1,4 @@
-package yuuine.lang2file.tool;
+package yuuine.lang2file.tool.FileTool;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;

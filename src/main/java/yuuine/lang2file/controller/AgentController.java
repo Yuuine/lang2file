@@ -20,4 +20,9 @@ public class AgentController {
         return agentService.chat(userInput);
     }
 
+    @PostMapping("/chatText")
+    public String chatText(@RequestBody String userInput) {
+        return agentService.chat(userInput).getResult().getOutput().getText();
+    }
+
 }
