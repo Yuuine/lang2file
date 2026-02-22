@@ -5,7 +5,6 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
