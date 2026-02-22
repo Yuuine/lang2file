@@ -55,7 +55,8 @@ public class ChatClientFactory {
         ChatClient.Builder builder = ChatClient.builder(chatModel);
         if (sessionId != null) {
             builder.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory)
-                    .conversationId(sessionId).build());
+                    .conversationId(sessionId)
+                    .build());
         }
         if (toolCallbackProvider != null) {
             builder.defaultToolCallbacks(toolCallbackProvider);
@@ -67,6 +68,16 @@ public class ChatClientFactory {
     public ChatClient createClientWithoutMemory(ToolCallbackProvider toolCallbackProvider) {
         return ChatClient.builder(chatModel)
                 .defaultToolCallbacks(toolCallbackProvider)
+                .build();
+    }
+
+    // 有记忆，无工具
+    public ChatClient createClientWithoutTools(String sessionId) {
+        return ChatClient.builder(chatModel)
+                .defaultAdvisors(
+                        MessageChatMemoryAdvisor.builder(chatMemory)
+                                .conversationId(sessionId)
+                                .build())
                 .build();
     }
 
