@@ -1,5 +1,7 @@
 package yuuine.lang2file.tool.otherTool;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -37,26 +39,16 @@ public class IpAddressTool {
 
     /**
      * 内部记录类，映射 API 返回的 JSON 字段。
+     * 使用 @JsonIgnoreProperties 忽略未知字段，仅映射当前方法所需的字段。
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private record IpInfo(
-            String ip,
-            String country,
-            String countryCode,
-            String region,
-            String regionName,
-            String city,
-            String zip,
-            double lat,
-            double lon,
-            String timezone,
-            String isp,
-            String org,
-            String as,
-            String asname,
-            boolean mobile,
-            boolean proxy,
-            boolean hosting,
-            String query
+            @JsonProperty("ipAddress") String ip,
+            @JsonProperty("countryName") String country,
+            @JsonProperty("regionName") String regionName,
+            @JsonProperty("cityName") String city,
+            @JsonProperty("asnOrganization") String isp,
+            @JsonProperty("asn") String org
     ) {
     }
 

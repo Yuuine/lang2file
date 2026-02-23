@@ -16,10 +16,13 @@ import java.util.regex.Pattern;
  * <p>
  * 采用混合策略：先通过规则快速过滤，对于规则无法明确判定的模糊输入，
  * 调用外部LLM服务进行智能判断。
- * 规则部分覆盖中英文文件操作典型表达，并包含负向规则排除明显非任务的问候/闲聊。
+ * 规则部分覆盖中英文文件操作典型表达，并包含负向规则排除明显非任务的问候。
+ * <p>
+ * 有无法被正向或负向规则明确判定的输入，均交由LLM兜底判断，
+ * 以确保最高准确性，避免误判。
  *
- * @author (your name)
- * @version 1.0
+ * @author yuuine
+ * @version 1.1
  */
 @Slf4j
 @Service
@@ -60,25 +63,12 @@ public class TaskChatRouterService {
     ));
 
     /**
-     * 闲聊/非文件任务关键词集合（如果句子包含这些词且不包含文件名词，则判定为false）
-     */
-    private static final Set<String> NON_FILE_TASK_KEYWORDS = new HashSet<>(Arrays.asList(
-            "天气", "股票", "新闻", "音乐", "电影", "闹钟", "计时器", "打电话", "发短信",
-            "weather", "stock", "news", "music", "movie", "alarm", "timer", "call", "text"
-    ));
-
-    // ========== 文件相关名词集合（用于模糊触发） ==========
-    private static final Set<String> FILE_NOUNS = new HashSet<>(Arrays.asList(
-            "文件", "文件夹", "目录", "文档", "文本", "图片", "照片", "视频", "音乐", "压缩包",
-            "file", "folder", "directory", "document", "txt", "pdf", "doc", "xls", "ppt", "zip",
-            "image", "photo", "video", "music"
-    ));
-
-    /**
      * LLM 分类提示词：要求模型判断输入是否为文件操作任务，仅输出 "true" 或 "false"
      */
     private static final String FILE_OPERATION_CLASSIFIER_PROMPT = """
-            You are a file-operation task classifier. Determine if the user's input is a request to perform a file or directory operation (e.g., create, read, write, delete, move, rename, copy, open, edit, save, upload, download, compress, extract). If it is, respond with exactly "true". If the input is casual chat, greeting, or any non-task statement, respond with exactly "false". Do not include any other text, punctuation, or explanation.
+            You are a classifier that determines whether a user input is a task-oriented dialogue. A task-oriented dialogue is defined as a user request that asks the system to perform a specific action, provide a service, or fulfill a concrete goal (e.g., setting an alarm, booking a ticket, answering a factual question, giving instructions, etc.). It does NOT include casual chitchat, greetings, expressions of emotion, or statements without an explicit request.
+            
+            Your response must be exactly one word: either "true" if the input is task-oriented, or "false" if it is not. Do not include any other text, punctuation, or explanation.
             """;
 
     // 依赖注入
@@ -86,6 +76,12 @@ public class TaskChatRouterService {
 
     /**
      * 判断用户输入是否为文件操作相关的任务型对话。
+     * <p>
+     * 流程：
+     * 1. 空输入 → false
+     * 2. 问候语 → false
+     * 3. 正向规则命中 → true
+     * 4. 其他所有情况 → 调用LLM兜底判断
      *
      * @param userInput 用户输入的原始字符串
      * @return true 表示文件操作任务，false 表示非任务或无法确定
@@ -99,33 +95,20 @@ public class TaskChatRouterService {
         final String trimmed = userInput.trim();
         log.debug("开始判断输入: [{}]", trimmed);
 
-        // 1. 负向规则快速排除
+        // 1. 负向规则：问候语快速排除
         if (isGreeting(trimmed)) {
             log.debug("命中问候语规则，判定为非任务");
             return false;
         }
 
-        // 2. 正向规则快速命中
+        // 2. 正向规则：明确文件操作指令
         if (matchesPositivePattern(trimmed)) {
             log.debug("命中正向文件操作规则，判定为任务");
             return true;
         }
 
-        // 3. 检查是否包含文件相关名词，决定是否需要LLM兜底
-        final boolean containsFileNoun = containsAnyFileNoun(trimmed);
-        if (!containsFileNoun) {
-            // 不包含文件名词，且未命中正向规则，说明不是文件操作任务
-            // 但需检查是否包含其他非文件任务关键词（如天气），如果包含，明确返回false
-            if (containsNonFileTaskKeyword(trimmed)) {
-                log.debug("包含其他非文件任务关键词，判定为非文件任务");
-                return false;
-            }
-            log.debug("不包含文件相关名词，也未命中正向规则，判定为非任务");
-            return false;
-        }
-
-        // 4. 模糊情况：包含文件名词但未被规则明确覆盖，调用LLM
-        log.debug("输入包含文件相关名词但规则无法明确，调用LLM进行判断");
+        // 3. 所有未被规则覆盖的输入，均由LLM兜底判断
+        log.debug("规则无法明确判断，调用LLM进行兜底");
         return callLlmWithFallback(trimmed);
     }
 
@@ -137,7 +120,7 @@ public class TaskChatRouterService {
      */
     private boolean isGreeting(final String input) {
         final String lower = input.toLowerCase();
-        return containsAnyIgnoreCase(lower, GREETINGS);
+        return containsAnyIgnoreCase(lower);
     }
 
     /**
@@ -160,36 +143,13 @@ public class TaskChatRouterService {
     }
 
     /**
-     * 检查输入是否包含文件相关名词（忽略大小写）。
-     *
-     * @param input 待检查字符串
-     * @return 如果包含任意文件名词返回 true
-     */
-    private boolean containsAnyFileNoun(final String input) {
-        final String lower = input.toLowerCase();
-        return containsAnyIgnoreCase(lower, FILE_NOUNS);
-    }
-
-    /**
-     * 检查输入是否包含非文件任务关键词（忽略大小写）。
-     *
-     * @param input 待检查字符串
-     * @return 如果包含任意非文件任务关键词返回 true
-     */
-    private boolean containsNonFileTaskKeyword(final String input) {
-        final String lower = input.toLowerCase();
-        return containsAnyIgnoreCase(lower, NON_FILE_TASK_KEYWORDS);
-    }
-
-    /**
      * 通用方法：检查小写字符串是否包含集合中的任意关键词（已小写化）。
      *
      * @param lowerCaseText 已转换为小写的文本
-     * @param keywords      关键词集合（原始大小写）
      * @return 如果包含任意关键词返回 true
      */
-    private boolean containsAnyIgnoreCase(final String lowerCaseText, final Set<String> keywords) {
-        for (final String keyword : keywords) {
+    private boolean containsAnyIgnoreCase(final String lowerCaseText) {
+        for (final String keyword : TaskChatRouterService.GREETINGS) {
             // 将关键词也转为小写进行比较
             if (lowerCaseText.contains(keyword.toLowerCase())) {
                 return true;
